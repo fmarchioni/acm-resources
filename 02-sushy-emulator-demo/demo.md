@@ -65,6 +65,9 @@ export VM_UUID=$(sudo virsh domuuid worker-0 | tr -d '\n')
 
 ### Script `start-sushy.sh`
 
+Creare il seguente file `start-sushy.sh` nella cartella corrente.
+
+
 ```bash
 #!/bin/bash
 
@@ -95,12 +98,11 @@ fi
 echo "Sushy è attivo sulla porta 8000"
 ```
 
-```bash
-chmod 755 start-sushy.sh
-./start-sushy.sh
-```
 
 ---
+
+* Lo scopo del file è avviare Sushy Emulator come servizio Redfish persistente, collegato a libvirt, in modo idempotente (lo puoi rilanciare senza rompere nulla).
+* E' necessario aggiungere anche il seguente file di configurazione: `sushy-emulator.conf`
 
 ### Configurazione `sushy-emulator.conf`
 
@@ -124,6 +126,13 @@ SUSHY_EMULATOR_VMEDIA_DEVICES = {
         "MediaTypes": ["CD", "DVD"]
     }
 }
+```
+
+### Avvio sushy emulator:
+
+```bash
+chmod 755 start-sushy.sh
+./start-sushy.sh
 ```
 
 ---
@@ -162,6 +171,8 @@ curl -X POST http://localhost:8000/redfish/v1/Systems/$VM_UUID/Actions/ComputerS
 
 ## Attach ISO via Virtual Media
 
+Al momento la comunicazione è funzionante ma non c'è nessun sistema di Boot della VM. Aggiungiamo una ISO minimale:
+
 ```bash
 curl -O https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/x86_64/alpine-standard-3.19.1-x86_64.iso
 sudo mv alpine-standard-3.19.1-x86_64.iso /var/lib/libvirt/images/
@@ -195,7 +206,7 @@ Login: `root` (no password)
 oc login -u admin -p redhatocp https://api.ocp4.example.com:6443
 ```
 
-Job di test:
+Esempio di Job di test (`job.yaml`):
 
 ```yaml
 apiVersion: batch/v1
@@ -220,6 +231,11 @@ spec:
   backoffLimit: 2
 ```
 
+* Esegui Job:
+
+```bash
+oc create -f job.yaml
+```
 ---
 
 # Next steps – ZTP GitOps reale con SiteConfig (produzione)
