@@ -1,0 +1,21 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: "common"
+policyDefaults:
+    namespace: sno-gitops-policies
+    remediationAction: enforce
+    severity: high
+    evaluationInterval:
+        compliant: 10m
+        noncompliant: 10s
+    placement:
+      placementPath: input/placement.yaml
+policies:
+    - name: demo-ztp-gitops
+      policyAnnotations:
+        ran.openshift.io/ztp-deploy-wave: "4"
+      disabled: false
+      manifests:
+        - path: input/policy-manifests/
+

@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-ztp-gitops-policies
+  namespace: openshift-gitops
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: policies-sub
+  project: default
+  source:
+    path: demos/ztp/demo-manifests/01-gitops/resources/acmpolicygenerator
+    repoURL: https://github.com/luisarizmendi/openshift-edge-demos
+    targetRevision: main
+    # uncomment the below plugin if you will be adding the plugin binaries in the same repo->dir where
+    # the policyGenTemplate.yaml exist AND use the ../../hack/patch-argocd-dev.sh script to re-patch the deployment-repo-server
+#    plugin:
+#      name: kustomize-with-local-plugins
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+
