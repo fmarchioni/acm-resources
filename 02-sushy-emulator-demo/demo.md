@@ -238,7 +238,65 @@ oc create -f job.yaml
 ```
 ---
 
-# Next steps – ZTP GitOps reale con SiteConfig (produzione)
+# Extra Steps - Creazione CR BareMetalHost
+
+Metal3 e Ironic forniscono funzionalità di provisioning bare metal all’interno di OpenShift.
+Ironic è il motore di provisioning sottostante che interagisce direttamente con i server fisici utilizzando protocolli di gestione standard come Redfish o IPMI per eseguire operazioni come il controllo dell’alimentazione, il boot via PXE e il deployment delle immagini.
+Metal3 funge da livello di integrazione nativo Kubernetes sopra Ironic, esponendo queste capacità tramite Custom Resource come BareMetalHost e permettendo a OpenShift di gestire l’infrastruttura bare metal in modo dichiarativo, come parte di un flusso GitOps e Zero Touch Provisioning (ZTP).
+
+La CR Provisioning serve per abilitare e configurare l’integrazione tra OpenShift, Metal3 e Ironic:
+
+```bash
+cat <<EOF | oc apply -f -
+apiVersion: metal3.io/v1alpha1
+kind: Provisioning
+metadata:
+  name: provisioning-configuration
+spec:
+  # 'Managed' dice all'operatore di installare Metal3 e Ironic
+  provisioningStrategy: Managed
+  watchAllNamespaces: true
+  provisioningInterface: "eth0"
+  provisioningNetwork: "Disabled"
+EOF
+```
+
+Una volta creata questa risorsa, si può provare a fare il Provisioning: 
+
+- Del Secret (credenziali non sono di fatto usate - quindi non occorre modificarle)
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: worker-0-bmc-secret
+  namespace: openshift-machine-api
+type: Opaque
+stringData:
+  username: "admin"
+  password: "password"
+```
+  
+- Del BareMetalHost (sostituire IP, Mac Address e VM_UUID con valori reali)
+
+```yaml
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: demo-worker
+  namespace: openshift-machine-api
+  annotations:
+    baremetalhost.metal3.io/inspect: "disabled"
+spec:
+  online: true
+  bootMACAddress: "CHANGEME"
+  bmc:
+    address: redfish-virtualmedia+http://CHANGEME:8000/redfish/v1/Systems/CHANGEME
+    credentialsName: worker-0-bmc-secret
+    disableCertificateVerification: true
+```
+
+# ZTP GitOps reale con SiteConfig (produzione)
 
 Con hardware reale (o riutilizzando questa VM), il passo successivo è **non creare più manualmente il BareMetalHost**, ma usare **SiteConfig Operator** via GitOps.
 
