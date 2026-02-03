@@ -206,6 +206,14 @@ Login: `root` (no password)
 oc login -u admin -p redhatocp https://api.ocp4.example.com:6443
 ```
 
+> Verifica indirizzo IP workstation:
+
+```bash
+ip addr show
+```
+
+>Suggerimento: dovrebbe essere nel range 172.25.xx.xx
+
 Esempio di Job di test (`job.yaml`):
 
 ```yaml
@@ -224,7 +232,7 @@ spec:
         - /bin/sh
         - -c
         - |
-          curl -X POST http://172.25.250.9:8000/redfish/v1/Systems/$VM_UUID/Actions/ComputerSystem.Reset \
+          curl -X POST http://IP:8000/redfish/v1/Systems/$VM_UUID/Actions/ComputerSystem.Reset \
             -H "Content-Type: application/json" \
             -d '{"ResetType": "On"}'
       restartPolicy: Never
@@ -300,6 +308,64 @@ spec:
 
 Con hardware reale (o riutilizzando questa VM), il passo successivo è **non creare più manualmente il BareMetalHost**, ma usare **SiteConfig Operator** via GitOps.
 
+CR da usare ( una delle due):
+
+1) RAN Operator
+
+```yaml
+# 1. Crea il Namespace dedicato
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-topology-aware-lifecycle-manager
+  labels:
+    openshift.io/cluster-monitoring: "true" # Abilita il monitoraggio Prometheus
+
+---
+# 2. Definisce il Gruppo Operatori (Scope)
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: talm-operator-group
+  namespace: openshift-topology-aware-lifecycle-manager
+spec:
+  targetNamespaces:
+  - openshift-topology-aware-lifecycle-manager
+
+---
+# 3. La Subscription (L'installazione vera e propria)
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: topology-aware-lifecycle-manager
+  namespace: openshift-topology-aware-lifecycle-manager
+spec:
+  # Il nome ufficiale del pacchetto su OLM
+  name: topology-aware-lifecycle-manager
+  # Dove trovarlo (Red Hat Catalog standard)
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  # Canale: usa "stable" o specifica la versione (es. "4.15", "4.16") allineata al tuo Hub
+  channel: "stable"
+  installPlanApproval: Automatic
+```
+
+2) SiteConfig Operator
+
+```yaml
+oc patch multiclusterhubs.operator.open-cluster-management.io \
+  multiclusterhub -n ${MCH_NAMESPACE} \
+  --type json \
+  --patch '[{
+    "op": "add",
+    "path":"/spec/overrides/components/-",
+    "value": {
+      "name":"siteconfig",
+      "enabled": true
+    }
+  }]'
+
+```
 ---
 
 ## Flusso completo ZTP GitOps
