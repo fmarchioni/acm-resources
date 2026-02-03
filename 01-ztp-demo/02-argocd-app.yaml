@@ -9,9 +9,9 @@ spec:
   project: default
 
   source:
-    repoURL: 'https://github.com/luisarizmendi/openshift-edge-demos.git'
+    repoURL: 'https://github.com/fmarchioni/acm-resources'
     targetRevision: main
-    path: demos/ztp/demo-manifests/01-gitops/resources/argocd/
+    path: 01-ztp-demo/resources/argocd/
 
   destination:
     server: 'https://kubernetes.default.svc'

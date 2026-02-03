@@ -16,7 +16,7 @@ spec:
           - git:
               directories:
                 - path: apps/welcome/*
-              repoURL: 'https://github.com/luisarizmendi/openshift-edge-demos.git'
+              repoURL: 'https://github.com/fmarchioni/acm-resources.git'
               revision: main
           - clusterDecisionResource:
               configMapRef: acm-placement
@@ -43,7 +43,7 @@ spec:
             - values.yaml
             - environment/values-sno.yaml
         path: '{{.path.path}}'
-        repoURL: 'https://github.com/luisarizmendi/openshift-edge-demos.git'
+        repoURL: 'https://github.com/fmarchioni/acm-resources.git'
         targetRevision: main
       syncPolicy:
         automated:

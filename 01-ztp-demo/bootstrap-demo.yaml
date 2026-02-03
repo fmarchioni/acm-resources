@@ -27,7 +27,7 @@ spec:
             project: default
 
             source:
-              repoURL: 'https://github.com/luisarizmendi/openshift-edge-demos.git'
+              repoURL: 'https://github.com/fmarchioni/acm-resources.git'
               targetRevision: main
               path: demos/ztp/bootstrap-demo/resources/overlays/aws
 
@@ -57,7 +57,7 @@ spec:
             project: default
 
             source:
-              repoURL: 'https://github.com/luisarizmendi/openshift-edge-demos.git'
+              repoURL: 'https://github.com/fmarchioni/acm-resources.git'
               targetRevision: main
               path: demos/ztp/bootstrap-demo/resources/base
 
