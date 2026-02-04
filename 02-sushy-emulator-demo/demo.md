@@ -265,6 +265,20 @@ Metal3 e Ironic forniscono funzionalità di provisioning bare metal all’intern
 Ironic è il motore di provisioning sottostante che interagisce direttamente con i server fisici utilizzando protocolli di gestione standard come Redfish o IPMI per eseguire operazioni come il controllo dell’alimentazione, il boot via PXE e il deployment delle immagini.
 Metal3 funge da livello di integrazione nativo Kubernetes sopra Ironic, esponendo queste capacità tramite Custom Resource come BareMetalHost e permettendo a OpenShift di gestire l’infrastruttura bare metal in modo dichiarativo, come parte di un flusso GitOps e Zero Touch Provisioning (ZTP).
 
+Per questa parte utilizziamo una VM più dimensionata. Cancelliamo prima la precedente VM:
+
+```bash
+sudo virsh destroy worker-0
+sudo virsh undefine worker-0 --nvram --remove-all-storage
+```
+- Creazione di una nuova VM
+
+```yaml
+sudo virt-install   --name worker-0   --memory 2048   --vcpus 1   --disk size=10,sparse=true   --os-variant rhel9.0   --network network=default,model=virtio,mac=52:54:00:00:00:01   --boot uefi   --noautoconsole   --noreboot   --check disk_size=off
+```
+
+
+
 La CR Provisioning serve per abilitare e configurare l’integrazione tra OpenShift, Metal3 e Ironic:
 
 ```bash
@@ -310,6 +324,13 @@ oc create -f secret.yaml
 sudo virsh domiflist worker-0
 ```
 
+Recupero UUID (usato da Redfish):
+
+```bash
+export VM_UUID=$(sudo virsh domuuid worker-0 | tr -d '\n')
+```
+
+
 - Creazione del BareMetalHost (bmh.yaml):
 - 
 ```yaml
@@ -322,9 +343,10 @@ metadata:
     baremetalhost.metal3.io/inspect: "disabled"
 spec:
   online: true
+  bootMode: UEFI  
   bootMACAddress: "CHANGEME"
   bmc:
-    address: redfish-virtualmedia+http://CHANGEME:8000/redfish/v1/Systems/CHANGEME
+    address: redfish-virtualmedia+http://CHANGEME:8000/redfish/v1/Systems/VM_UUID
     credentialsName: worker-0-bmc-secret
     disableCertificateVerification: true
 ```
