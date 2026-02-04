@@ -198,6 +198,19 @@ Login: `root` (no password)
 
 ---
 
+## Attach ISO da HTTP ?
+
+In alternativa si può acquisire l'immagine via HTTP in questo modo:
+
+```bash
+sudo virt-xml worker-0 \
+  --add-device \
+  --disk type=network,device=cdrom,protocol=https,\
+name=/alpine/v3.19/releases/x86_64/alpine-standard-3.19.1-x86_64.iso,\
+host.name=dl-cdn.alpinelinux.org,host.port=443,\
+boot.order=1
+```
+
 ## Test controllo Redfish da OpenShift
 
 > Serve un cluster OpenShift attivo
