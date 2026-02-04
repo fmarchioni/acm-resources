@@ -284,7 +284,7 @@ EOF
 
 Una volta creata questa risorsa, si può provare a fare il Provisioning: 
 
-- Del Secret (credenziali non sono di fatto usate - quindi non occorre modificarle)
+- Del Secret `secret.yaml` (credenziali non sono di fatto usate - quindi non occorre modificarle)
 
 ```yaml
 apiVersion: v1
@@ -297,7 +297,11 @@ stringData:
   username: "admin"
   password: "password"
 ```
-  
+
+```bash
+oc create -f secret.yaml
+```
+
 - Del BareMetalHost (sostituire IP, Mac Address e VM_UUID con valori reali)
 
 - Recuperate il mac address della macchina:
@@ -306,7 +310,7 @@ stringData:
 sudo virsh domiflist worker-0
 ```
 
-- Creazione del BareMetalHost:
+- Creazione del BareMetalHost (bmh.yaml):
 - 
 ```yaml
 apiVersion: metal3.io/v1alpha1
@@ -323,6 +327,10 @@ spec:
     address: redfish-virtualmedia+http://CHANGEME:8000/redfish/v1/Systems/CHANGEME
     credentialsName: worker-0-bmc-secret
     disableCertificateVerification: true
+```
+
+```bash
+oc create -f bmh.yaml
 ```
 
 # ZTP GitOps reale con SiteConfig (produzione)
