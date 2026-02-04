@@ -287,6 +287,14 @@ stringData:
   
 - Del BareMetalHost (sostituire IP, Mac Address e VM_UUID con valori reali)
 
+- Recuperate il mac address della macchina:
+
+```bash
+sudo virsh domiflist worker-0
+```
+
+- Creazione del BareMetalHost:
+- 
 ```yaml
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
