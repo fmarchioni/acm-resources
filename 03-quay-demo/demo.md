@@ -70,7 +70,7 @@ TOKEN=$(curl -s -k -u "$ROBOT_USER:$ROBOT_SECRET" \
 
 ```bash
 curl -k -s -H "Authorization: Bearer $TOKEN" \
- "$QUAY_HOST/api/v1/discovery" | jq .
+ "https://$QUAY_HOST/api/v1/discovery" | jq .
 ```
 
 ---
