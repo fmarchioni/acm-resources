@@ -194,5 +194,71 @@ Organization → finance → Repository → app → Tags
 Dovrebbe essere visibile il tag `latest` appena pushato.
 
 ---
- 
 
+## Lab Quay - ambiente air-gapped
+
+
+```bash
+# ==============================================================================
+# FASE 1: INSTALLAZIONE TOOL
+# ==============================================================================
+
+# Scaricamento del plugin oc-mirror (versione stable)
+curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/oc-mirror.tar.gz -o oc-mirror.tar.gz
+
+# Estrazione dell'archivio
+tar -xvzf oc-mirror.tar.gz
+
+# Reso eseguibile e spostato nel PATH di sistema
+chmod +x oc-mirror
+sudo mv oc-mirror /usr/local/bin/
+
+# ==============================================================================
+# FASE 2: DEFINIZIONE IMAGESET (CONFIGURAZIONE)
+# ==============================================================================
+
+# Creazione del file dichiarativo ImageSetConfiguration
+# Definisce lo scope: vogliamo solo l'immagine Alpine
+cat <<EOF > imageset-config.yaml
+kind: ImageSetConfiguration
+apiVersion: mirror.openshift.io/v1alpha2
+mirror:
+  additionalImages:
+    - name: docker.io/library/alpine:latest
+EOF
+
+# ==============================================================================
+# FASE 3: DOWNLOAD (MIRROR TO DISK)
+# ==============================================================================
+
+# Esecuzione mirroring: Upstream -> Cartella Locale (usb-disk)
+# Non richiede privilegi di admin, scarica solo i blob e manifest
+oc mirror --v1 --config=imageset-config.yaml file://usb-disk
+
+# ==============================================================================
+# FASE 4: UPLOAD (DISK TO MIRROR)
+# ==============================================================================
+
+# Esecuzione mirroring: Cartella Locale -> Quay Interno
+# Carica le immagini nell'org 'mirror-demo' e genera i manifest per il cluster
+oc mirror --v1 --from ./usb-disk docker://registry.ocp4.example.com:8443/mirror-demo
+
+# ==============================================================================
+# FASE 5: CONFIGURAZIONE CLUSTER (REDIRECTION)
+# ==============================================================================
+
+# Entra nella cartella dei risultati generata automaticamente dall'upload
+cd oc-mirror-workspace/results-*
+
+# Applica la ImageContentSourcePolicy (ICSP) al cluster
+# Istruisce CRI-O a reindirizzare docker.io -> registry.ocp4
+oc apply -f imageContentSourcePolicy.yaml
+
+# ==============================================================================
+# FASE 6: VALIDAZIONE
+# ==============================================================================
+
+# Test: Richiesta esplicita dell'upstream originale (docker.io)
+# Se il pod va in Running, il reindirizzamento trasparente funziona
+oc run demo-test --image=docker.io/library/alpine:latest --restart=Never -- sleep 1000
+```
