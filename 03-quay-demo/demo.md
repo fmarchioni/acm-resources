@@ -53,21 +53,16 @@ I passaggi principali:
 3. Login di prova con token:
 
 ```bash
-podman login -u="developer+ocprobot" -p="<TOKEN_ROBOT>" https://registry.ocp4.example.com:8443
+QUAY_HOST="registry.ocp4.example.com:8443"
+REPO="developer/alpine"
+ROBOT_USER="developer+ocprobot"
+ROBOT_SECRET="AH0NZ82DJUDYC3WH03DKEPAG2I4Y87N5HN0L6X47LLY45E2QEMSTLD2Q7V7WA0C4"
+
+
+TOKEN=$(curl -s -k -u "$ROBOT_USER:$ROBOT_SECRET" \
+  "https://$QUAY_HOST/v2/auth?service=$QUAY_HOST&scope=repository:$REPO:pull" | jq -r .token)
 ```
 
----
-
-## 6) Preparazione variabili d’ambiente per API
-
-```bash
-QUAY_HOST=https://registry.ocp4.example.com:8443
-
-TOKEN=$(curl -s -k -u "developer+ocprobot:<TOKEN_ROBOT>" \
- "https://registry.ocp4.example.com:8443/v2/auth?service=registry.ocp4.example.com:8443" | jq -r .token)
-
-echo $TOKEN
-```
 
 ---
 
@@ -85,7 +80,7 @@ curl -k -s -H "Authorization: Bearer $TOKEN" \
 ```bash
 curl -k -s -H "Authorization: Bearer $TOKEN" \
   -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
-  "$QUAY_HOST/v2/developer/alpine/manifests/latest" | jq .
+  "https://$QUAY_HOST/v2/$REPO/manifests/latest" | jq .
 ```
 
 ---
@@ -93,9 +88,8 @@ curl -k -s -H "Authorization: Bearer $TOKEN" \
 ## 9) Esempio uso API Quay: Vedere i tags disponibili
 
 ```bash
-curl -k -I -H "Authorization: Bearer $TOKEN" \
-  -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
-  "$QUAY_HOST/v2/developer/alpine/manifests/latest" | grep -i "docker-content-digest"
+curl -s -k -H "Authorization: Bearer $TOKEN" \
+  "https://$QUAY_HOST/v2/$REPO/tags/list" | jq .
 ```
 
 # Parte II: Creazione utenze / Organization / Teams
