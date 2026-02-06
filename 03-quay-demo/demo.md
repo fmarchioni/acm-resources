@@ -56,10 +56,10 @@ I passaggi principali:
 QUAY_HOST="registry.ocp4.example.com:8443"
 REPO="developer/alpine"
 ROBOT_USER="developer+ocprobot"
-ROBOT_SECRET="AH0NZ82DJUDYC3WH03DKEPAG2I4Y87N5HN0L6X47LLY45E2QEMSTLD2Q7V7WA0C4"
+ROBOT_PASS="AH0NZ82DJUDYC3WH03DKEPAG2I4Y87N5HN0L6X47LLY45E2QEMSTLD2Q7V7WA0C4" # notsecret
 
 
-TOKEN=$(curl -s -k -u "$ROBOT_USER:$ROBOT_SECRET" \
+TOKEN=$(curl -s -k -u "$ROBOT_USER:$ROBOT_PASS" \
   "https://$QUAY_HOST/v2/auth?service=$QUAY_HOST&scope=repository:$REPO:pull" | jq -r .token)
 ```
 
